@@ -20,7 +20,7 @@ public record BookingResponse(
     public static BookingResponse from(BookingEntity entity) {
         return new BookingResponse(
                 entity.getId(),
-                entity.getCustomer().getId(),
+                entity.getCustomerId(),
                 entity.getRoom().getId(),
                 entity.getRoom().getRoomNumber(),
                 entity.getStartDate(),

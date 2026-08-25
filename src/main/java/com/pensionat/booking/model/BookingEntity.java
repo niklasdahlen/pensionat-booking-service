@@ -1,7 +1,5 @@
 package com.pensionat.booking.model;
 
-
-import com.pensionat.customer.model.CustomerEntity;
 import com.pensionat.room.model.RoomEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -25,9 +23,8 @@ public class BookingEntity {
     private Long id;
 
     @NotNull(message = "Customer is required")
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private CustomerEntity customer;
+    @Column(name = "customer_id", nullable = false)
+    private Long customerId;
 
     @NotNull(message = "Room is required")
     @ManyToOne(optional = false)
@@ -49,12 +46,17 @@ public class BookingEntity {
     @Column(nullable = false)
     private boolean extraBed = false;
 
-    public BookingEntity(CustomerEntity customer, RoomEntity room, LocalDate startDate, LocalDate endDate, BookingStatus bookingStatus) {
-        this.customer = customer;
+    public BookingEntity(
+            Long customerId,
+            RoomEntity room,
+            LocalDate startDate,
+            LocalDate endDate,
+            BookingStatus bookingStatus
+    ) {
+        this.customerId = customerId;
         this.room = room;
         this.startDate = startDate;
         this.endDate = endDate;
         this.bookingStatus = bookingStatus;
-
     }
 }

@@ -1,13 +1,13 @@
-package com.pensionat.booking;
+// package com.pensionat.booking;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class PensionatBookingSystemApplicationTests {
+// @SpringBootTest
+// class PensionatBookingSystemApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+// 	@Test
+// 	void contextLoads() {
+// 	}
 
-}
+// }

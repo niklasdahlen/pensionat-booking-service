@@ -5,8 +5,6 @@ import com.pensionat.booking.dto.UpdateBookingRequest;
 import com.pensionat.booking.model.BookingEntity;
 import com.pensionat.booking.model.BookingStatus;
 import com.pensionat.booking.repository.BookingRepository;
-import com.pensionat.customer.model.CustomerEntity;
-import com.pensionat.customer.repository.CustomerRepository;
 import com.pensionat.exception.BadRequestException;
 import com.pensionat.exception.NotFoundException;
 import com.pensionat.room.model.RoomEntity;
@@ -20,12 +18,13 @@ import java.util.List;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
-    private final CustomerRepository customerRepository;
     private final RoomRepository roomRepository;
 
-    public BookingService(BookingRepository bookingRepository, CustomerRepository customerRepository, RoomRepository roomRepository) {
+    public BookingService(
+            BookingRepository bookingRepository,
+            RoomRepository roomRepository
+    ) {
         this.bookingRepository = bookingRepository;
-        this.customerRepository = customerRepository;
         this.roomRepository = roomRepository;
     }
 
@@ -34,15 +33,13 @@ public class BookingService {
     }
 
     public BookingEntity createBooking(CreateBookingRequest request) {
-        CustomerEntity customer = customerRepository.findById(request.customerId())
-                .orElseThrow(() -> new NotFoundException("Customer not found"));
-
         RoomEntity room = roomRepository.findById(request.roomId())
                 .orElseThrow(() -> new NotFoundException("Room not found"));
 
         if (!request.endDate().isAfter(request.startDate())) {
             throw new BadRequestException("Check-out date must be after check-in date");
         }
+
         if (request.extraBed() && room.getRoomType() != RoomType.DOUBLE) {
             throw new BadRequestException("Extra bed is only available to double rooms");
         }
@@ -60,22 +57,21 @@ public class BookingService {
         }
 
         BookingEntity booking = new BookingEntity(
-                customer,
+                request.customerId(),
                 room,
                 request.startDate(),
                 request.endDate(),
                 BookingStatus.ACTIVE
         );
+
         booking.setExtraBed(request.extraBed());
+
         return bookingRepository.save(booking);
     }
 
     public BookingEntity updateBooking(Long id, UpdateBookingRequest request) {
         BookingEntity booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
-
-        CustomerEntity customer = customerRepository.findById(request.customerId())
-                .orElseThrow(() -> new NotFoundException("Customer not found"));
 
         RoomEntity room = roomRepository.findById(request.roomId())
                 .orElseThrow(() -> new NotFoundException("Room not found"));
@@ -84,13 +80,16 @@ public class BookingService {
             throw new BadRequestException("Cancelled bookings cannot be updated");
         }
 
-        if (!booking.getCustomer().getId().equals(customer.getId())) {
-            throw new BadRequestException("Booking can only be updated by the customer who owns it");
+        if (!booking.getCustomerId().equals(request.customerId())) {
+            throw new BadRequestException(
+                    "Booking can only be updated by the customer who owns it"
+            );
         }
 
         if (!request.endDate().isAfter(request.startDate())) {
             throw new BadRequestException("Check-out date must be after check-in date");
         }
+
         if (request.extraBed() && room.getRoomType() != RoomType.DOUBLE) {
             throw new BadRequestException("Extra bed is only available to double rooms");
         }
@@ -108,12 +107,13 @@ public class BookingService {
             throw new BadRequestException("Room is already booked on selected dates");
         }
 
-        booking.setCustomer(customer);
+        booking.setCustomerId(request.customerId());
         booking.setRoom(room);
         booking.setStartDate(request.startDate());
         booking.setEndDate(request.endDate());
         booking.setBookingStatus(BookingStatus.ACTIVE);
         booking.setExtraBed(request.extraBed());
+
         return bookingRepository.save(booking);
     }
 
