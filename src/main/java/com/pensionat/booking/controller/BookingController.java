@@ -50,4 +50,9 @@ public class BookingController {
         BookingEntity bookingEntity = bookingService.cancelBooking(id);
         return BookingResponse.from(bookingEntity);
     }
+
+    @GetMapping("/customer/[customerId]/has-active")
+    public boolean hasActiveBookings(@PathVariable Long customerId) {
+        return bookingService.hasActiveBookings(customerId);
+    }
 }

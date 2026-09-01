@@ -11,6 +11,7 @@ import com.pensionat.room.model.RoomEntity;
 import com.pensionat.room.model.RoomType;
 import com.pensionat.room.repository.RoomRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -128,5 +129,9 @@ public class BookingService {
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
         return bookingRepository.save(booking);
+    }
+
+    public boolean hasActiveBookings(@PathVariable Long customerId) {
+        return bookingRepository.existsByCustomerIdAndBookingStatus(customerId, BookingStatus.ACTIVE);
     }
 }
