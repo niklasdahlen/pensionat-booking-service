@@ -10,8 +10,8 @@ import com.pensionat.exception.NotFoundException;
 import com.pensionat.room.model.RoomEntity;
 import com.pensionat.room.model.RoomType;
 import com.pensionat.room.repository.RoomRepository;
+import com.pensionat.client.CustomerClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -20,13 +20,16 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
+    private final CustomerClient customerClient;
 
     public BookingService(
             BookingRepository bookingRepository,
-            RoomRepository roomRepository
+            RoomRepository roomRepository,
+            CustomerClient customerClient
     ) {
         this.bookingRepository = bookingRepository;
         this.roomRepository = roomRepository;
+        this.customerClient = customerClient;
     }
 
     public List<BookingEntity> getAllBookings() {
@@ -36,6 +39,10 @@ public class BookingService {
     public BookingEntity createBooking(CreateBookingRequest request) {
         RoomEntity room = roomRepository.findById(request.roomId())
                 .orElseThrow(() -> new NotFoundException("Room not found"));
+
+        if (!customerClient.customerExists(request.customerId())) {
+            throw new NotFoundException("Customer not found");
+        }
 
         if (!request.endDate().isAfter(request.startDate())) {
             throw new BadRequestException("Check-out date must be after check-in date");
@@ -131,7 +138,7 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    public boolean hasActiveBookings(@PathVariable Long customerId) {
+    public boolean hasActiveBookings(Long customerId) {
         return bookingRepository.existsByCustomerIdAndBookingStatus(customerId, BookingStatus.ACTIVE);
     }
 }
