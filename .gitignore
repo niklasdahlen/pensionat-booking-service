@@ -38,9 +38,12 @@ Thumbs.db
 
 ### Logs ###
 *.log
+logs/
 
 ### Maven ###
 dependency-reduced-pom.xml
 
 ### Environment variables ###
 .env
+.env.*
+!**/.env.example
