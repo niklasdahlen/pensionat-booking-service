@@ -4,9 +4,9 @@ import com.pensionat.booking.dto.BookingResponse;
 import com.pensionat.booking.dto.CreateBookingRequest;
 import com.pensionat.booking.dto.UpdateBookingRequest;
 import com.pensionat.booking.model.BookingEntity;
-import com.pensionat.booking.dto.BookingResponse;
 import com.pensionat.booking.service.BookingService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +31,7 @@ public class BookingController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public BookingResponse createBooking(@Valid @RequestBody CreateBookingRequest request) {
         BookingEntity bookingEntity = bookingService.createBooking(request);
         return BookingResponse.from(bookingEntity);
@@ -51,7 +52,7 @@ public class BookingController {
         return BookingResponse.from(bookingEntity);
     }
 
-    @GetMapping("/customer/[customerId]/has-active")
+    @GetMapping("/customer/{customerId}/has-active")
     public boolean hasActiveBookings(@PathVariable Long customerId) {
         return bookingService.hasActiveBookings(customerId);
     }
