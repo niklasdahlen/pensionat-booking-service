@@ -1,0 +1,16 @@
+target
+.git
+.github
+.idea
+.vscode
+*.iml
+
+.env
+.env.*
+*.log
+
+README.md
+HELP.md
+docker-compose.yml
+docker-compose.yaml
+mvnw.cmd
