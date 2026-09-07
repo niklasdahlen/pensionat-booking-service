@@ -9,6 +9,14 @@ COPY mvnw pom.xml ./
 RUN chmod +x mvnw \
     && ./mvnw -B dependency:go-offline
 
+#Prepare the image used to execute integration tests.
+FROM dependencies AS test
+
+WORKDIR /app
+
+COPY src ./src
+
+ENTRYPOINT ["./mvnw", "-B", "test", "-Dspring.profiles.active=test"]
 
 # Package the application as an executable JAR.
 FROM dependencies AS builder
