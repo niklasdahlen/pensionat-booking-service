@@ -1,128 +1,185 @@
 # Pensionat Booking Backend
 
-Backend API for a guesthouse booking system built with Java and Spring Boot.
+Booking and room management API for the Pensionat Booking System, built with Java and Spring Boot.
 
-The application handles customers, rooms and bookings, including booking validation, room availability, account management and database persistence.
+The application manages rooms, availability and the complete booking lifecycle. It stores only the customer ID associated with each booking and communicates with the Customer Service to verify that a customer exists before creating a booking.
 
 ---
 
-## Related Repository
+## Related Repositories
 
-**Frontend:** [pensionat-booking-frontend](https://github.com/Igor-01-Gomes/pensionat-booking-frontend)
+**Customer Service:** [pensionat-customer-service](https://github.com/igor-gomes-academic/pensionat-customer-service)
+
+**Frontend:** [pensionat-booking-frontend](https://github.com/igor-gomes-academic/pensionat-booking-frontend)
+
+---
 
 ## Architecture Overview
 
 ```text
 User
-  ↓
-Frontend (Next.js / React)
-  ↓ REST API
-Backend (Spring Boot)
-  ↓ Spring Data JPA / Hibernate
-MySQL Database
+  │
+  ▼
+Frontend
+  │
+  │ Booking and room requests
+  ▼
+Booking Service
+  ├── Booking and room data ──► Booking MySQL Database
+  │
+  └── Customer existence check before booking creation ──► Customer Service
 ```
+
+Each service owns its own database. The Booking Service never reads from or writes directly to the Customer Service database.
+
+- The Frontend provides the user interface
+- The Booking Service manages rooms and bookings
+- The Customer Service manages customer accounts
 
 ---
 
 ## Technologies
 
-- Java
+- Java 17
 - Spring Boot
+- Spring Web MVC
 - Spring Data JPA
 - Hibernate
 - MySQL
 - Maven
 - Dotenv
-- JUnit
-- Mockito
 - Bean Validation
-- Spring Security Crypto
+- JUnit
+- Docker
+- Docker Compose
 
 ---
 
 ## Project Structure
 
-The backend is organized into separate layers:
+The Booking Service is organized into separate layers:
 
-- **Controller layer** – Handles API requests and responses
-- **Service layer** – Contains business logic and validation
-- **Repository layer** – Handles database access through Spring Data JPA
-- **Entity classes** – Represent database tables
-- **DTOs** – Used for request and response data
-- **Exceptions** – Custom error handling for invalid operations
+- **Controller layer:** Handles booking and room API requests and responses
+- **Service layer:** Contains booking, room and availability business logic
+- **Repository layer:** Handles database access through Spring Data JPA
+- **Client layer:** Handles REST communication with the Customer Service
+- **Entity classes:** Represent booking and room database tables
+- **DTOs:** Define request and response data
+- **Exceptions:** Provide clear error handling and HTTP status codes
+- **Configuration:** Provides CORS, security and initial room data configuration
 
 ---
 
 ## Functionality
 
-The backend supports:
+The Booking Service supports:
 
-1. Customer registration and login
-2. Updating customer information
-3. Deleting customer accounts
-4. Preventing account deletion when active bookings exist
-5. Room management
-6. Creating bookings
-7. Updating bookings
-8. Cancelling bookings
-9. Preventing double bookings for the same room and date interval
-10. Searching available rooms
-11. Handling room types and extra beds
-12. Returning clean DTO responses to the frontend
+1. Retrieving all rooms
+2. Creating rooms
+3. Searching for available rooms by date interval
+4. Retrieving all bookings
+5. Creating bookings
+6. Updating bookings
+7. Cancelling bookings
+8. Preventing overlapping active bookings for the same room
+9. Handling room types and extra beds
+10. Verifying that a customer exists before creating a booking
+11. Checking whether a customer has active bookings
+12. Returning DTO responses with appropriate HTTP status codes
 
 ---
 
 ## Database
 
-The application uses a MySQL database.
+The Booking Service uses its own MySQL database.
 
 The main entities are:
 
-- **CustomerEntity**
-- **RoomEntity**
 - **BookingEntity**
+- **RoomEntity**
 
-Bookings are connected to both customers and rooms through relational mappings.
+The Booking Service does not store customer information. Each booking contains only the customer ID supplied by the Customer Service domain.
+
+Ten rooms are added automatically when the booking database is empty.
 
 ---
 
 ## Business Rules
 
-- A room cannot be double booked for overlapping dates
-- A booking must have a valid start and end date
-- Extra beds are only allowed for double rooms
-- A customer cannot delete their account while having active bookings
-- Cancelled bookings can be removed when deleting a customer account
+- A customer must exist before a booking can be created
+- The check-out date must be after the check-in date
+- A room cannot have overlapping active bookings
+- Extra beds are only available for double rooms
+- A cancelled booking cannot be updated
+- A booking can only be updated using the customer ID associated with it
+- The Customer Service can check for active bookings before deleting a customer account
+- If the Customer Service is unavailable during booking creation, the Booking Service returns a clear service unavailable response
 
 ---
 
-## Configuration
+## API Communication
 
-The application uses Dotenv and environment variables for local database configuration.
+The frontend sends booking and room requests to the Booking Service on port `8080`.
 
-Create a `.env` file in the project root with:
+Before creating a booking, the Booking Service sends a REST request to the Customer Service on port `8081`:
 
-```env
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
+```text
+GET /api/customers/{customerId}
 ```
+
+The response determines whether the supplied customer ID belongs to an existing customer.
+
+The Booking Service also provides the following endpoint for the Customer Service:
+
+```text
+GET /api/bookings/customer/{customerId}/has-active
+```
+
+The Customer Service uses this response to prevent deletion of a customer account with active bookings.
 
 ---
 
 ## Testing
 
-The backend includes unit tests using JUnit and Mockito for parts of the service layer and business validation logic.
+The Booking Service includes integration tests that start the Spring Boot application on a random port and perform real HTTP requests against the booking API.
+
+The shared Docker Compose environment also provides isolated test databases and dedicated test runners for both services.
+
+From the shared environment directory, run:
+
+```console
+docker compose --profile test up --build booking-tests customer-tests
+```
+
+After the tests finish, stop and remove the test containers and network:
+
+```console
+docker compose --profile test down
+```
+
+> The test databases are separate from the normal application databases.
 
 ---
 
-## Running the Application
+## Production Build
 
-The backend runs locally on:
+The service uses a multi-stage Dockerfile that separates dependency installation, integration testing, application packaging and runtime execution.
 
-```text
-http://localhost:8080
-```
-> Make sure the MySQL database is running and correctly configured before starting the application.
+The production image contains only the executable JAR and the Java Runtime Environment. Build tools, source files and test dependencies are not included in the final image.
+
+The container runs as a non-root user and exposes the service on port `8080`.
+
+The `.dockerignore` file excludes local, development and generated files from the Docker build context.
+
+---
+
+## Running the Complete System with Docker Compose
+
+The shared Docker Compose environment and setup instructions are maintained in the Customer Service repository:
+
+[pensionat-customer-service: Running the Complete System with Docker Compose](https://github.com/igor-gomes-academic/pensionat-customer-service#running-the-complete-system-with-docker-compose)
+
+Follow those instructions to configure and start the Frontend, Booking Service, Customer Service and both MySQL databases.
 
 ---
 
