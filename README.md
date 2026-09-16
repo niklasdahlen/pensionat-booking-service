@@ -1,4 +1,4 @@
-# Pensionat Booking Backend
+# Pensionat Booking Backend Service
 
 Booking and room management API for the Pensionat Booking System, built with Java and Spring Boot.
 
