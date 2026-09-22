@@ -48,7 +48,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void createBooking_throwsNotFound_whenCustomerDoesNotExist() {
+    void throwsNotFound_whenCustomerDoesNotExist() {
         CreateBookingRequest request = new CreateBookingRequest(
                 999L, 1L,
                 LocalDate.now().plusDays(1),
@@ -63,7 +63,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void createBooking_throwsNotFound_whenRoomDoesNotExist() {
+    void throwsNotFound_whenRoomDoesNotExist() {
         CreateBookingRequest request = new CreateBookingRequest(
                 1L, 999L,
                 LocalDate.now().plusDays(1),
@@ -79,7 +79,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void createBooking_throwsBadRequest_whenEndDateBeforeStartDate() {
+    void throwsBadRequest_whenEndDateBeforeStartDate() {
         CreateBookingRequest request = new CreateBookingRequest(
                 1L, 1L,
                 LocalDate.now().plusDays(5),
@@ -95,7 +95,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void createBooking_throwsBadRequest_whenExtraBedOnSingleRoom() {
+    void throwsBadRequest_whenExtraBedOnSingleRoom() {
         CreateBookingRequest request = new CreateBookingRequest(
                 1L, 1L,
                 LocalDate.now().plusDays(1),
@@ -111,7 +111,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void createBooking_throwsBadRequest_whenRoomIsAlreadyBooked() {
+    void throwsBadRequest_whenRoomIsAlreadyBooked() {
         CreateBookingRequest request = new CreateBookingRequest(
                 1L, 1L,
                 LocalDate.now().plusDays(1),
